@@ -1,0 +1,3 @@
+# QueuePulse
+
+Queue management application.

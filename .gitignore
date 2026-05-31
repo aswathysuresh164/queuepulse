@@ -1,0 +1,17 @@
+# Personal / local files (not part of QueuePulse)
+*.docx
+*.doc
+~$*
+*.tmp
+desktop.ini
+*.txt
+Zoom/
+Custom Office Templates/
+portfolio/
+My Music/
+My Pictures/
+My Videos/
+
+# OS
+.DS_Store
+Thumbs.db
