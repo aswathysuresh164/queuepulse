@@ -33,7 +33,40 @@ src/main/java/com/queuepulse/
 mvn spring-boot:run
 ```
 
-API base: `http://localhost:8080/api/v1/queues`
+### Auth (public)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/auth/register` | Create account (default role: `CUSTOMER`) |
+| POST | `/auth/login` | Returns JWT |
+
+Register body:
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "password123",
+  "role": "CUSTOMER"
+}
+```
+
+Login body:
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "password123"
+}
+```
+
+Use the token on protected routes:
+
+```
+Authorization: Bearer <token>
+```
+
+API base: `http://localhost:8080/api/v1/queues` (requires authentication)
 
 ## Test
 
