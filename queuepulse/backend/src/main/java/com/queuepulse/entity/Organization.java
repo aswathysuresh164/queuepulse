@@ -4,34 +4,28 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(
-        name = "queues",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"organization_id", "name"})
-)
+@Table(name = "organizations")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Queue {
+public class Organization {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,16 +34,21 @@ public class Queue {
     @Column(nullable = false, length = 120)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
-
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    @Builder.Default
-    private QueueStatus status = QueueStatus.ACTIVE;
+    @Column(nullable = false, length = 30)
+    private OrganizationType type;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    @OneToMany(mappedBy = "organization")
+    @Builder.Default
+    private List<Queue> queues = new ArrayList<>();
+
+    public void addQueue(Queue queue) {
+        queues.add(queue);
+        queue.setOrganization(this);
+    }
+
+    public void removeQueue(Queue queue) {
+        queues.remove(queue);
+        queue.setOrganization(null);
+    }
 }

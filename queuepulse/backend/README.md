@@ -66,7 +66,29 @@ Use the token on protected routes:
 Authorization: Bearer <token>
 ```
 
-API base: `http://localhost:8080/api/v1/queues` (requires authentication)
+### Queues (authenticated)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/v1/queues` | List all (optional `?organizationId=1`) |
+| GET | `/api/v1/queues/{id}` | Get by id |
+| POST | `/api/v1/queues` | Create |
+| PUT | `/api/v1/queues/{id}` | Update |
+| DELETE | `/api/v1/queues/{id}` | Delete |
+
+Create/update body:
+
+```json
+{
+  "name": "Front Desk",
+  "organizationId": 1,
+  "status": "ACTIVE"
+}
+```
+
+Response fields: `id`, `name`, `organizationId`, `status`, `createdAt`
+
+`status`: `ACTIVE`, `PAUSED`, `CLOSED` (defaults to `ACTIVE` on create)
 
 ## Test
 

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,8 +27,8 @@ public class QueueController {
     private final QueueService queueService;
 
     @GetMapping
-    public List<QueueResponse> list() {
-        return queueService.findAll();
+    public List<QueueResponse> list(@RequestParam(required = false) Long organizationId) {
+        return queueService.findAll(organizationId);
     }
 
     @GetMapping("/{id}")
