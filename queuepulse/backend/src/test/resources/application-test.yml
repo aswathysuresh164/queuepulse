@@ -11,4 +11,13 @@ spring:
     show-sql: false
 
   autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+queuepulse:
+  kafka:
+    enabled: false
+
+jwt:
+  secret: test-secret-key-for-jwt-signing-min-32-chars
+  expiration-ms: 3600000

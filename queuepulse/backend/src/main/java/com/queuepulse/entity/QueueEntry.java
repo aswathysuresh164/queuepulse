@@ -2,8 +2,6 @@ package com.queuepulse.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,47 +15,35 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
 
 @Entity
 @Table(
-        name = "queues",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"organization_id", "name"})
+        name = "queue_entries",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"queue_id", "token"})
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Queue {
+public class QueueEntry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 120)
-    private String name;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
+    @JoinColumn(name = "queue_id", nullable = false)
+    private Queue queue;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    @Builder.Default
-    private QueueStatus status = QueueStatus.ACTIVE;
+    private String token;
 
-    @Column(nullable = false, length = 5)
-    @Builder.Default
-    private String tokenPrefix = "A";
-
-    @Column(nullable = false)
-    @Builder.Default
-    private int nextTokenNumber = 101;
-
-    @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    private Instant joinedAt;
+
+    @Column
+    private Instant servedAt;
 }

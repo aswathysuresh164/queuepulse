@@ -2,7 +2,10 @@ package com.queuepulse.service;
 
 import com.queuepulse.dto.QueueRequest;
 import com.queuepulse.dto.QueueResponse;
+import com.queuepulse.entity.Organization;
 import com.queuepulse.entity.Queue;
+import com.queuepulse.entity.QueueStatus;
+import com.queuepulse.repository.OrganizationRepository;
 import com.queuepulse.repository.QueueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,29 +21,34 @@ import java.util.List;
 public class QueueService {
 
     private final QueueRepository queueRepository;
+    private final OrganizationRepository organizationRepository;
 
-    public List<QueueResponse> findAll() {
-        return queueRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+    public List<QueueResponse> findAll(Long organizationId) {
+        List<Queue> queues = organizationId != null
+                ? queueRepository.findAllByOrganizationId(organizationId)
+                : queueRepository.findAllWithOrganization();
+
+        return queues.stream().map(this::toResponse).toList();
     }
 
     public QueueResponse findById(Long id) {
-        return queueRepository.findById(id)
+        return queueRepository.findByIdWithOrganization(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Queue not found"));
     }
 
     @Transactional
     public QueueResponse create(QueueRequest request) {
-        if (queueRepository.existsByName(request.name())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Queue name already exists");
+        Organization organization = resolveOrganization(request.organizationId());
+
+        if (queueRepository.existsByNameAndOrganizationId(request.name(), organization.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Queue name already exists for this organization");
         }
 
         Queue queue = Queue.builder()
                 .name(request.name())
-                .description(request.description())
-                .active(request.active() != null ? request.active() : true)
+                .organization(organization)
+                .status(request.status() != null ? request.status() : QueueStatus.ACTIVE)
                 .build();
 
         return toResponse(queueRepository.save(queue));
@@ -48,19 +56,21 @@ public class QueueService {
 
     @Transactional
     public QueueResponse update(Long id, QueueRequest request) {
-        Queue queue = queueRepository.findById(id)
+        Queue queue = queueRepository.findByIdWithOrganization(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Queue not found"));
 
-        queueRepository.findByName(request.name())
+        Organization organization = resolveOrganization(request.organizationId());
+
+        queueRepository.findByNameAndOrganizationId(request.name(), organization.getId())
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
-                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Queue name already exists");
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Queue name already exists for this organization");
                 });
 
         queue.setName(request.name());
-        queue.setDescription(request.description());
-        if (request.active() != null) {
-            queue.setActive(request.active());
+        queue.setOrganization(organization);
+        if (request.status() != null) {
+            queue.setStatus(request.status());
         }
 
         return toResponse(queueRepository.save(queue));
@@ -74,14 +84,18 @@ public class QueueService {
         queueRepository.deleteById(id);
     }
 
+    private Organization resolveOrganization(Long organizationId) {
+        return organizationRepository.findById(organizationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Organization not found"));
+    }
+
     private QueueResponse toResponse(Queue queue) {
         return QueueResponse.builder()
                 .id(queue.getId())
                 .name(queue.getName())
-                .description(queue.getDescription())
-                .active(queue.isActive())
+                .organizationId(queue.getOrganization().getId())
+                .status(queue.getStatus())
                 .createdAt(queue.getCreatedAt())
-                .updatedAt(queue.getUpdatedAt())
                 .build();
     }
 }

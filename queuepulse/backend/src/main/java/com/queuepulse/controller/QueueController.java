@@ -1,7 +1,10 @@
 package com.queuepulse.controller;
 
+import com.queuepulse.dto.JoinQueueResponse;
 import com.queuepulse.dto.QueueRequest;
 import com.queuepulse.dto.QueueResponse;
+import com.queuepulse.service.JoinQueueService;
+import com.queuepulse.service.QueueEntryService;
 import com.queuepulse.service.QueueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,10 +28,12 @@ import java.util.List;
 public class QueueController {
 
     private final QueueService queueService;
+    private final JoinQueueService joinQueueService;
+    private final QueueEntryService queueEntryService;
 
     @GetMapping
-    public List<QueueResponse> list() {
-        return queueService.findAll();
+    public List<QueueResponse> list(@RequestParam(required = false) Long organizationId) {
+        return queueService.findAll(organizationId);
     }
 
     @GetMapping("/{id}")
@@ -50,5 +56,17 @@ public class QueueController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         queueService.delete(id);
+    }
+
+    @PostMapping("/{id}/join")
+    @ResponseStatus(HttpStatus.CREATED)
+    public JoinQueueResponse join(@PathVariable Long id) {
+        return joinQueueService.join(id);
+    }
+
+    @PostMapping("/entries/{entryId}/serve")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void serve(@PathVariable Long entryId) {
+        queueEntryService.markServed(entryId);
     }
 }
